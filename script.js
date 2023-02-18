@@ -1,80 +1,150 @@
-const jock = 1;
-const teacher = 2;
-const nerd = 3;
-const ivancho = 4;
-const notPicked = 0;
+const JOCK = 1;
+const TEACHER = 2;
+const NERD = 3;
+const IVANCHO = 4;
+const NOT_PICKED = 0;
 
-const playerWin = 1;
-const tie = 0;
-const computerWin = -1;
+const PLAYER_WIN = 1;
+const TIE = 0;
+const COMPUTER_WIN = -1;
 
+let tieCount = 0, winCount = 0, loseCount = 0;
+let state = 0;
 
-let playerClass = notPicked; /* 0-unselected, 1-jock, 2- teacher, 3-nerd, 4-ivancho */
+let playerClass = NOT_PICKED; /* 0-unselected, 1-jock, 2- teacher, 3-nerd, 4-ivancho */
 
-/* let test = document.querySelector(".teacher"); */
-document.querySelector(".jock").addEventListener("click", () => defineWinner(jock,genRndComputerClass()));
-document.querySelector(".teacher").addEventListener("click", () => defineWinner(teacher,genRndComputerClass()));
-document.querySelector(".nerd").addEventListener("click", () => defineWinner(nerd,genRndComputerClass()));
-document.querySelector(".ivancho").addEventListener("click", () => defineWinner(ivancho,genRndComputerClass()));
+document.querySelector(".jock").addEventListener("click", () => pickClassAndUpdate(JOCK));
+document.querySelector(".teacher").addEventListener("click", () => pickClassAndUpdate(TEACHER));
+document.querySelector(".nerd").addEventListener("click", () => pickClassAndUpdate(NERD));
+document.querySelector(".ivancho").addEventListener("click", () => pickClassAndUpdate(IVANCHO)); //button clicks
 
+document.addEventListener('keypress', function(keypress) {
+    let key = keypress.key;
+    passwordState(key);
+});
+
+function passwordState(key) {
+    if (state == 0 && key == 'v'){
+        state = 1;
+        return;
+    }
+    if (state == 1 && key == 'a'){
+        state = 2;
+        return;
+    }
+    if (state == 2 && key == 'n'){
+        removeEventListener('keypress',() => passwordState(function(event) {
+            return event.key; 
+        }));
+        document.querySelector(".ivancho").disabled = false;
+        return;
+    }
+    state = 0;
+}
+
+function gameEnded () {
+    return ( winCount >= 5 || loseCount >= 5 || tieCount >= 5)
+}
+
+function pickClassAndUpdate (playerClass) {
+    switch(defineRoundWinner(playerClass,genRndComputerClass())){
+        case PLAYER_WIN:
+            winCount++;
+            break;
+        case COMPUTER_WIN:
+            loseCount++;
+            break;
+        case TIE:
+            tieCount++;
+            break;
+    }   
+    if (gameEnded()){
+        defineMatchWinner();
+        document.querySelector(".jock").disabled = true;
+        document.querySelector(".teacher").disabled = true;
+        document.querySelector(".nerd").disabled = true;
+        document.querySelector(".ivancho").disabled = true;
+    }
+    document.querySelector(".score").innerHTML = "WINS: " + winCount + ", LOSES: " + loseCount + ", TIES: " + tieCount
+}
 
 function genRndComputerClass() {
     return Math.floor(Math.random()*3 + 1);
    
 } 
 
+function defineMatchWinner() {
+    if (winCount >= 5){
+        document.querySelector(".gameOver").innerHTML = ("GAME OVER:<br> YOU WIN BY ACHIEVING " + winCount + " WINS!<br>REFRESH PAGE TO PLAY AGAIN!" );
+        return;
+    }
+    if (loseCount >= 5){
+        document.querySelector(".gameOver").innerHTML = ("GAME OVER:<br> YOU LOSE BY GETTING " + loseCount + " LOSES!<br>REFRESH PAGE TO PLAY AGAIN!" );
+        return;
+    }
+    if (winCount > loseCount){
+        document.querySelector(".gameOver").innerHTML = ("GAME OVER:<br> YOU WIN BY ACHIEVING " + tieCount + " TIES AND HAVING MORE WINS!<br>REFRESH PAGE TO PLAY AGAIN!" );
+        return;
+    }
+    if (winCount < loseCount){
+        document.querySelector(".gameOver").innerHTML = ("GAME OVER:<br> YOU LOSE BY ACHIEVING " + tieCount + " TIES AND HAVING LESS WINS!<br>REFRESH PAGE TO PLAY AGAIN!" );
+        return;
+    }
+    document.querySelector(".gameOver").innerHTML = ("GAME OVER:<br> YOU TIED BY ACHIEVING " + tieCount + " TIES AND HAVING EQUAL WINS AND LOSES!<br>REFRESH PAGE TO PLAY AGAIN!" );
+}
+
 /* 1 = player win, 0 = tie, -1 = computer win */
- function defineWinner (playerClass, computerClass) {
+ function defineRoundWinner (playerClass, computerClass) {
 
     switch(playerClass) {
-        case jock:
+        case JOCK:
             switch(computerClass){
-                case jock:
+                case JOCK:
                     document.querySelector(".fightResult").innerHTML = "You go train for the next football match together! (T)"
-                    return tie;
-                case teacher:
+                    return TIE;
+                case TEACHER:
                     document.querySelector(".fightResult").innerHTML = "You failed your finals! (L)" 
-                    return computerWin;
-                case nerd:
+                    return COMPUTER_WIN;
+                case NERD:
                     document.querySelector(".fightResult").innerHTML = "You stuck him in a locker! (W)"
-                    return playerWin;
+                    return PLAYER_WIN;
                 default: 
                     document.querySelector(".fightResult").innerHTML = ""
                     return;
             }
 
-        case teacher:
+        case TEACHER:
             switch(computerClass){
-                case jock:
+                case JOCK:
                     document.querySelector(".fightResult").innerHTML = "You made him repeat the year! (W)" 
-                    return playerWin;
-                case teacher:
+                    return PLAYER_WIN;
+                case TEACHER:
                     document.querySelector(".fightResult").innerHTML = "You try to fix the multimedia together ! (T)"
-                    return tie;
-                case nerd:
+                    return TIE;
+                case NERD:
                     document.querySelector(".fightResult").innerHTML = "He's got higher-degree than you at 16! (L)"
-                    return computerWin;
+                    return COMPUTER_WIN;
                 default:
                     document.querySelector(".fightResult").innerHTML = "" 
                     return;
             }
 
-        case nerd:
+        case NERD:
             switch(computerClass){
-                case jock:
+                case JOCK:
                     document.querySelector(".fightResult").innerHTML = "You got stuck in a locker! (L)"
-                    return computerWin;
-                case teacher: 
+                    return COMPUTER_WIN;
+                case TEACHER: 
                     document.querySelector(".fightResult").innerHTML = "This mere mortal could not outsmart you! (W)"
-                    return playerWin;
-                case nerd:
+                    return PLAYER_WIN;
+                case NERD:
                     document.querySelector(".fightResult").innerHTML = "You go play DnD and WoW together! (T)"
-                    return tie;
+                    return TIE;
                 default:
                     document.querySelector(".fightResult").innerHTML = "" 
                     return;
             } 
-        case ivancho:
+        case IVANCHO:
             document.querySelector(".fightResult").innerHTML = "You are the ultimate human being in terms of strenth, smarts and beauty. Nobody can challenge you! (W) "
             return(1)
         default :
@@ -83,7 +153,6 @@ function genRndComputerClass() {
 } 
 
 
-/* test.addEventListener("click", () => 100+100); */
 /* document.querySelector("teacher").addEventListener("click", () => console.log(123)); */
 
 /* function winnerIs (playerClass, computerClass) {
